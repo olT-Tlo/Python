@@ -1,0 +1,17 @@
+from math import log
+
+def newton(f, df, x0, tol):
+    x = x0
+    while abs(f(x)) > tol:
+        x = x - f(x)/df(x)
+    return x
+
+a=12.0636
+
+f = lambda k: k - log(k) - a
+df = lambda k: 1 - 1/k
+x0 = 10
+tol = 1e-6
+
+k = newton(f, df, x0, tol)
+print("a=",a, "k=",k)
