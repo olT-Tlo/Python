@@ -1,0 +1,16 @@
+#用python将公式转化为Latex形式
+#1.安装py后 在CMD中输入 pip install sympy 安装函数库
+#2.使用Python中的sympy库来实现这个功能。下面是一个简单的示例代码：
+
+from sympy import *
+from sympy.printing.latex import latex
+
+x, y, z ,q,w= symbols('x y z q w')
+expr = (x / (y * z)+q)/w
+print(latex(expr))
+
+#这段代码将创建一个符号表达式(x / (y * z)+q)/w，并使用sympy库中的latex函数将其转换为LaTeX形式。输出结果为：\frac{q + \frac{x}{y z}}{w} 。
+
+#此外，在Word中可以直接选中文字公式按 Alt+= 转化为公式框，再按 Crtl+= 转化为数学公式。
+
+#x^2 py代码中表示为 x**2
