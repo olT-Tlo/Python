@@ -1,0 +1,152 @@
+import tkinter as tk
+import re
+import math
+from tkinter import ttk
+import tkinter.messagebox as msgbox
+import tkinter.simpledialog as dl
+import tkinter.scrolledtext as st
+import tkinter.filedialog as fd
+from tkinter import messagebox
+import clipboard
+
+# 创建主窗口
+root = tk.Tk()
+root.title("栗子公式计算器")
+frame = tk.Frame(root)
+
+# 创建公式输入框
+input_frame = tk.Frame(root)
+input_frame.pack(side=tk.TOP, padx=10, pady=10)
+
+tk.Label(input_frame, text="公式：").pack(side=tk.LEFT)
+input_entry = tk.Entry(input_frame, width=50)
+input_entry.pack(side=tk.LEFT)
+
+# 创建表格
+table_frame = tk.Frame(root)
+table_frame.pack(padx=10, pady=10)
+
+table_labels = ["变量", "值"]
+for i, label in enumerate(table_labels):
+    tk.Label(table_frame, text=label).grid(row=0, column=i)
+
+table_entries = []
+for i in range(10):
+    row_entries = []
+    for j in range(2):
+        entry = tk.Entry(table_frame)
+        entry.grid(row=i+1, column=j)
+        row_entries.append(entry)
+    table_entries.append(row_entries)
+
+
+
+
+# 创建填入表格按钮
+def fill_table():
+    # 获取输入框中的公式
+    formula = input_entry.get()
+
+    # 使用正则表达式匹配公式中的字母
+    letters = variables = list(set(re.findall(r'[a-zA-Z]+', formula)))
+
+
+
+    # 填入表格
+    for i, letter in enumerate(letters):
+        # 如果该字母已经填过，跳过
+        if table_entries[i][0].get():
+            continue
+        # 如果该字母是函数名，跳过
+        if letter in ("ln", "exp","sin","cos","tan","asin","acos","atan"):
+            continue
+        table_entries[i][0].insert(0, letter)
+
+
+fill_button = tk.Button(input_frame, text="提取变量", command=fill_table)
+fill_button.pack(side=tk.RIGHT)
+
+
+
+# 计算表达式
+def calculate():
+    # 获取表格中的字母和对应值
+    values = {}
+    for entry in table_entries:
+        letter, value = entry[0].get(), entry[1].get()
+        if letter and value:
+            values[letter] = float(value)
+
+    # 获取输入框中的公式
+    formula = input_entry.get()
+
+    # 将公式中的"pi"替换为Python中的圆周率常量
+    formula = formula.replace('pi', 'math.pi')
+
+    # 将公式中的字母替换为对应的值
+    for letter, value in values.items():
+        formula = re.sub(rf"(?<!\w){letter}(?!\w)", str(value), formula)
+
+    # 将公式中的ln和exp替换为Python中的对应函数
+    formula = formula.replace('ln', 'math.log')
+    formula = formula.replace('exp', 'math.exp')
+
+    # 将公式中的sin、cos、tan和arcsin、arccos、arctan替换为Python中的对应函数
+    formula = re.sub(r'(?<!\w)asin(?!\w)', 'math.asin', formula)
+    formula = re.sub(r'(?<!\w)acos(?!\w)', 'math.acos', formula)
+    formula = re.sub(r'(?<!\w)atan(?!\w)', 'math.atan', formula)
+    formula = re.sub(r'(?<!\w)sin(?!\w)', 'math.sin', formula)
+    formula = re.sub(r'(?<!\w)cos(?!\w)', 'math.cos', formula)
+    formula = re.sub(r'(?<!\w)tan(?!\w)', 'math.tan', formula)
+  
+
+
+    # 计算表达式
+    try:
+        result = eval(formula)
+        output_label.config(text=f"{result}")
+    except Exception as eee:
+        output_label.config(text=f"计算错误：{eee}")
+
+# 创建计算按钮
+calculate_button = tk.Button(root, text="计算", font=("宋体", 12), command=calculate)
+calculate_button.pack()
+
+# 创建输出标签
+output_label = tk.Label(root, text="", font=("宋体", 12), fg="black")
+output_label.pack()
+
+
+# 创建提示信息的文本框
+info_text = tk.Text(root, height=8,width=60, font=("宋体", 10),fg="red")
+info_text.pack()
+
+# 显示提示信息
+info_text.insert(tk.END, "开发者:libo&ChatGpt3.5  当前版本v2.5 新增三角函数 尚未美化UI\n")
+info_text.insert(tk.END, "三角函数 反三角函数输入示例 sin(a)+asin(b)+cos(pi) pi为圆周率 单位为弧度\n")
+info_text.insert(tk.END, "请在上方输入框输入公式，例如：a+b-c*d/e+2**f+ln(g)+exp(h)\n")
+info_text.insert(tk.END, "点击“提取变量”按钮，程序将自动提取公式中的字母并填入表格第一列\n")
+info_text.insert(tk.END, "在表格中输入字母的值，然后点击“计算”按钮计算结果\n")
+info_text.insert(tk.END, "点击结果可直接复制至粘贴板\n")
+
+
+
+# 复制结果
+def copy_result(event):
+    result = output_label.cget("text")
+    if result and re.match(r'^-?\d+(?:\.\d+)?$', result):
+        clipboard.copy(result)
+        copy_label.config(text="已复制")
+        root.after(3000, lambda: copy_label.config(text=""))
+
+# 创建提示标签
+copy_label = tk.Label(root, text="", font=("宋体", 12), fg="green")
+copy_label.pack()
+
+
+# 绑定单击事件
+output_label.bind("<Button-1>", copy_result)
+
+
+# 进入主循环
+root.mainloop()
